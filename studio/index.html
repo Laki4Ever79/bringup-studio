@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bringup Studio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%230E5A4A'/%3E%3Ccircle cx='8' cy='8' r='3' fill='%23B3622A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <div class="brand">Bringup<span>/</span>Studio <small id="project"></small></div>
+  <nav class="views" role="tablist">
+    <button data-view="board" aria-selected="true">Board</button>
+    <button data-view="page">Page</button>
+    <button data-view="motion">Motion</button>
+  </nav>
+  <div class="toggles">
+    <div class="seg" data-toggle="theme"><button data-v="light">Light</button><button data-v="dark">Dark</button><button data-v="both">Both</button></div>
+    <div class="seg" data-toggle="width"><button data-v="360">360</button><button data-v="1280">1280</button></div>
+    <div class="seg" data-toggle="lang"><button data-v="en">EN</button><button data-v="sr">SR</button></div>
+  </div>
+  <span id="conn" data-state="closed" title="live connection"></span>
+</header>
+<div id="status" class="status"><span class="who">idle</span><span class="text"></span></div>
+<div id="note" class="note" hidden></div>
+
+<main class="layout">
+  <aside class="side">
+    <h3>Elements</h3>
+    <ul id="elements"></ul>
+    <h3>Snapshots</h3>
+    <ul id="snapshots" class="small"></ul>
+  </aside>
+
+  <section class="stage">
+    <div id="view-board" class="view"><div id="tiles" class="tiles"></div></div>
+    <div id="view-page" class="view" hidden><div class="pageframe"><iframe id="pageframe" title="page preview"></iframe></div></div>
+    <div id="view-motion" class="view" hidden>
+      <div class="motionframe"><iframe id="motionframe" title="motion preview"></iframe></div>
+      <div class="transport">
+        <button id="play" aria-label="play/pause">❚❚</button>
+        <div class="seg" data-toggle="speed"><button data-v="1">1×</button><button data-v="0.25">¼×</button></div>
+        <div class="scrub"><input id="scrub" type="range" min="0" max="1000" value="0"><div id="ticks" class="ticks"></div></div>
+        <code id="time">0 ms</code>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <section>
+      <h3>Feedback</h3>
+      <p class="sel">Selected: <b id="selected">none</b></p>
+      <div class="row">
+        <button id="pick" class="btn">Pick</button>
+        <button id="more" class="btn ghost">More like this</button>
+      </div>
+      <p class="hint">Alt-click a tile to pin a comment on a spot.</p>
+      <div id="comment" class="comment">
+        <textarea id="comment-text" rows="3" placeholder="Comment on the selected tile…"></textarea>
+        <button id="comment-send" class="btn ghost">Send</button>
+      </div>
+      <ol id="feed" class="feed"></ol>
+    </section>
+    <section>
+      <h3>Generate reference</h3>
+      <textarea id="gen-prompt" rows="3" placeholder="e.g. minimal robot head mark, two strokes, flat"></textarea>
+      <div class="row">
+        <select id="gen-provider"><option value="openai">OpenAI</option><option value="gemini">Gemini</option><option value="mock">Mock (free)</option></select>
+        <select id="gen-count"><option>1</option><option>2</option><option selected>4</option></select>
+      </div>
+      <button id="gen" class="btn copper">Generate</button>
+      <p class="hint" id="spend">Image spend: –</p>
+      <div id="refs" class="refs"></div>
+    </section>
+  </aside>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
