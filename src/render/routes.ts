@@ -17,11 +17,14 @@ export function boardPage(ctx: Ctx, id: string, o: { variants?: string[]; themes
   names.forEach((v, i) => {
     const variant = v === "base" ? undefined : v;
     const scopedId = `${id}--${i}`;
-    // Compile each variant under its own scoped id so tiles don't share custom properties.
-    const c = compileElement({ ...el, id: scopedId, scope: undefined, css: el.css.replaceAll(`--${id}-`, `--${scopedId}-`) }, variant);
-    css.push(c.css);
+    // Each tile defines the element's own custom properties (--<id>-<param>) on its own root, so the element's rules,
+    // whatever their selectors, read the tile's values through inheritance. Renaming the properties per tile broke
+    // plain class rules: every tile's copy of ".x{fill:var(--id--N-p)}" overrode the last, so only one tile kept its
+    // values. Rules that name the element itself ([data-studio="<id>"], e.g. motion) are pointed at every tile.
+    const c = compileElement({ ...el, scope: `[data-studio="${scopedId}"]` }, variant);
+    css.push(c.css.replaceAll(`[data-studio="${id}"]`, `[data-studio-el="${id}"]`));
     for (const theme of o.themes) {
-      tiles.push(`<figure class="tile" data-theme="${theme}" data-variant="${v}"><div class="stage">${stageOpen(el.kind, o.tile ? o.tile * 2 : 520)}${applyStrings(c.markup.replace(`data-studio="${scopedId}"`, `data-studio="${scopedId}" data-studio-el="${id}"`), strings, o.lang)}</div></div><figcaption>${v}${o.themes.length > 1 ? " · " + theme : ""}</figcaption></figure>`);
+      tiles.push(`<figure class="tile" data-theme="${theme}" data-variant="${v}"><div class="stage">${stageOpen(el.kind, o.tile ? o.tile * 2 : 520)}${applyStrings(c.markup.replace(`data-studio="${id}"`, `data-studio="${scopedId}" data-studio-el="${id}"`), strings, o.lang)}</div></div><figcaption>${v}${o.themes.length > 1 ? " · " + theme : ""}</figcaption></figure>`);
     }
   });
   const tok = compileTokens(ctx.store.tokens()).replace(/:root\[data-theme="dark"\]/, '[data-theme="dark"]');

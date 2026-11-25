@@ -36,3 +36,21 @@ test("board preview never reflects query values as markup", async () => {
   const html = await (await fetch(srv.url + `/preview/board/btn?lang=${evil}&variants=${evil}`)).text();
   assert.doesNotMatch(html, /<script>alert/);
 });
+
+test("board tiles keep their own param values when the element's CSS uses plain class rules", async () => {
+  srv.ctx.store.put({
+    id: "dots", kind: "icon", note: "",
+    markup: `<svg viewBox="0 0 10 10" width="40" height="40"><circle class="dot" cx="5" cy="5" r="4"/></svg>`,
+    css: `.dot{fill:var(--dots-fill)}`,
+    params: [{ name: "fill", type: "color", value: "#ff0000" }],
+    motion: [], variants: { green: { fill: "#00ff00" }, blue: { fill: "#0000ff" } },
+  } as any);
+  const { chromium } = await import("playwright");
+  const b = await chromium.launch();
+  try {
+    const p = await b.newPage();
+    await p.goto(srv.url + "/preview/board/dots?variants=base,green,blue&theme=light");
+    const fills = await p.$$eval(".tile .dot", (els) => els.map((e) => getComputedStyle(e).fill));
+    assert.deepEqual(fills, ["rgb(255, 0, 0)", "rgb(0, 255, 0)", "rgb(0, 0, 255)"]);
+  } finally { await b.close(); }
+});
