@@ -8,3 +8,4 @@ out/
 .history/
 projects/*/feedback.jsonl
 projects/*/refs/
+projects/page/
