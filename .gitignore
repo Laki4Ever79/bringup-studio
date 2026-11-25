@@ -5,3 +5,4 @@ tools/
 .superpowers/
 out/
 *.bak-*
+.history/

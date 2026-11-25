@@ -1,0 +1,31 @@
+{
+  "name": "bringup-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "tsx src/server/main.ts",
+    "mcp": "tsx src/mcp/main.ts",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "chokidar": "^4.0.3",
+    "gifenc": "^1.0.3",
+    "pixelmatch": "^8.0.0",
+    "playwright": "^1.58.2",
+    "pngjs": "^7.0.0",
+    "potrace": "^2.1.8",
+    "ws": "^8.23.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.10",
+    "@types/pngjs": "^6.0.5",
+    "@types/ws": "^8.18.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
