@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# MCP entry point for Claude Code: claude mcp add --scope user bringup-studio -- <this file>
+cd "$(dirname "$(readlink -f "$0")")/.." && exec node --import tsx src/mcp/main.ts
