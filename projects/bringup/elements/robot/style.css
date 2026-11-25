@@ -1,0 +1,7 @@
+.robot{width:100%;max-width:100%;height:auto;display:block}
+.robot .plate{fill:none;stroke:var(--ink);stroke-width:2}
+.robot .wheel{fill:var(--ink)}
+.robot .board{fill:var(--mask)}
+.robot .pad{fill:var(--copper)}
+.robot .dim{stroke:var(--muted);stroke-width:1}
+.robot text{font:500 11px var(--f-mono);fill:var(--muted)}

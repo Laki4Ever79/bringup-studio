@@ -6,3 +6,5 @@ tools/
 out/
 *.bak-*
 .history/
+projects/*/feedback.jsonl
+projects/*/refs/

@@ -11,10 +11,20 @@ const { GIFEncoder, quantize, applyPalette } = gifenc as unknown as {
 export type RenderOpts = { width: number; height?: number; theme: "light" | "dark"; selector?: string; fullPage?: boolean; scale?: number };
 
 let browser: Promise<Browser> | null = null;
-function getBrowser() {
-  browser ??= chromium.launch();
-  return browser;
+/** One shared browser; if it dies (crash, killed, closed) the next call launches a fresh one. */
+async function getBrowser(): Promise<Browser> {
+  if (browser) {
+    const b = await browser.catch(() => null);
+    if (b?.isConnected()) return b;
+    browser = null;
+  }
+  const p = chromium.launch();
+  browser = p;
+  const b = await p;
+  b.on("disconnected", () => { if (browser === p) browser = null; });
+  return b;
 }
+export const _browserForTest = () => browser;
 
 export async function closeRenderer() {
   if (browser) { const b = await browser; browser = null; await b.close(); }

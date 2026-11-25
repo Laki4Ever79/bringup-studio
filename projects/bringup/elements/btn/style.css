@@ -1,0 +1,2 @@
+.btn{font:600 16px/1 var(--f-body);background:var(--mask);color:var(--mask-ink);border:0;border-radius:6px;padding:14px 20px;cursor:pointer;text-decoration:none}
+@media (prefers-reduced-motion: no-preference){.btn{transition:filter .15s}.btn:hover{filter:brightness(1.1)}}

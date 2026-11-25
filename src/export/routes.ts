@@ -19,7 +19,8 @@ function compiled(ctx: Ctx, id: string, variant?: string): { markup?: string; cs
   return { css, markup };
 }
 
-/** POST /api/adopt {id, markup?: "<needle, e.g. class=\"robot\">", css: [selectors], kind?} → {diff, backup, created} */
+/** POST /api/adopt {id, markup?: "<needle, e.g. class=\"robot\">", css: [selectors], kind?, sample?} → {diff, backup, created}
+ *  sample: preview markup for CSS-only adopts (e.g. one button), kept in the studio only; never exported. */
 route("POST", /^\/api\/adopt$/, async (req, _r, _m, ctx) => {
   const b = await body(req);
   const id = String(b.id ?? "");
@@ -28,7 +29,7 @@ route("POST", /^\/api\/adopt$/, async (req, _r, _m, ctx) => {
   if (id !== "tokens" && !ctx.store.list().includes(id)) {
     const got = importBack(sitePath(ctx), id);
     const el: ElementDef = {
-      id, kind: b.kind ?? "section", markup: got.markup ?? "", css: got.css ?? "", params: [], motion: [], variants: {},
+      id, kind: b.kind ?? "section", markup: got.markup ?? String(b.sample ?? ""), css: got.css ?? "", params: [], motion: [], variants: {},
       note: "adopted from the page",
       ...(got.markup === undefined && b.css?.[0] ? { scope: String(b.css[0]) } : {}),
     };

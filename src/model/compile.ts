@@ -78,6 +78,11 @@ export function applyStrings(markup: string, strings: Strings | undefined, lang:
 export const DEFAULT_FONTS =
   "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap";
 
+/** Kinds that fill a page column; previewed on a stage as wide as the Bringup page's 720px column. */
+export const WIDE_KINDS = new Set(["section", "illustration"]);
+export const stageOpen = (kind: string, width = 720) =>
+  WIDE_KINDS.has(kind) ? `<div class="studio-stage" style="width:min(100%,${width}px)">` : `<div class="studio-stage">`;
+
 /** A standalone HTML document showing one element (one variant) on the project's paper. */
 export function elementPage(p: {
   tokens: Tokens; el: ElementDef; variant?: string; theme: "light" | "dark"; lang?: string;
@@ -93,5 +98,5 @@ export function elementPage(p: {
 html,body{margin:0;min-height:100%}
 body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--f-body, system-ui);display:grid;place-items:center;min-height:100vh;padding:${p.pad ?? 24}px}
 ${p.baseCss ?? ""}
-${css}</style></head><body>${applyStrings(markup, p.strings, lang)}</body></html>`;
+${css}</style></head><body>${stageOpen(p.el.kind)}${applyStrings(markup, p.strings, lang)}</div></body></html>`;
 }

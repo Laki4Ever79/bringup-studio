@@ -43,3 +43,11 @@ test("renderGif produces a GIF", async () => {
   const gif = await renderGif(page("#b{animation:f 1s}@keyframes f{to{opacity:0}}"), { width: 80, height: 80, theme: "light", fps: 5, duration: 400 });
   assert.equal(gif.subarray(0, 6).toString(), "GIF89a");
 });
+
+test("the renderer relaunches when its browser dies", async () => {
+  const { _browserForTest } = await import("../src/render/render.ts");
+  await renderPng(page(), { width: 50, height: 50, theme: "light" });
+  await (await _browserForTest())!.close();
+  const png = await renderPng(page(), { width: 50, height: 50, theme: "light" });
+  assert.equal(PNG.sync.read(png).width, 50);
+});

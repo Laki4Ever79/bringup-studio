@@ -1,5 +1,5 @@
 import { route, type Ctx } from "../server/app.ts";
-import { compileElement, compileTokens, applyStrings, DEFAULT_FONTS } from "../model/compile.ts";
+import { compileElement, compileTokens, applyStrings, DEFAULT_FONTS, stageOpen, WIDE_KINDS } from "../model/compile.ts";
 import { StudioError } from "../model/types.ts";
 import { renderFrames, renderGif, renderPng } from "./render.ts";
 
@@ -18,7 +18,7 @@ export function boardPage(ctx: Ctx, id: string, o: { variants?: string[]; themes
     const c = compileElement({ ...el, id: scopedId, scope: undefined, css: el.css.replaceAll(`--${id}-`, `--${scopedId}-`) }, variant);
     css.push(c.css);
     for (const theme of o.themes) {
-      tiles.push(`<figure class="tile" data-theme="${theme}" data-variant="${v}"><div class="stage">${applyStrings(c.markup.replace(`data-studio="${scopedId}"`, `data-studio="${scopedId}" data-studio-el="${id}"`), strings, o.lang)}</div><figcaption>${v}${o.themes.length > 1 ? " · " + theme : ""}</figcaption></figure>`);
+      tiles.push(`<figure class="tile" data-theme="${theme}" data-variant="${v}"><div class="stage">${stageOpen(el.kind, o.tile ? o.tile * 2 : 520)}${applyStrings(c.markup.replace(`data-studio="${scopedId}"`, `data-studio="${scopedId}" data-studio-el="${id}"`), strings, o.lang)}</div></div><figcaption>${v}${o.themes.length > 1 ? " · " + theme : ""}</figcaption></figure>`);
     }
   });
   const tok = compileTokens(ctx.store.tokens()).replace(/:root\[data-theme="dark"\]/, '[data-theme="dark"]');
@@ -26,7 +26,7 @@ export function boardPage(ctx: Ctx, id: string, o: { variants?: string[]; themes
 <style>${tok}
 *,*::before,*::after{box-sizing:border-box}body{margin:0;padding:16px;background:#888;font:13px/1.4 "IBM Plex Mono",monospace}
 .grid{display:flex;flex-wrap:wrap;gap:12px}
-.tile{margin:0;background:var(--paper);color:var(--ink);border-radius:8px;overflow:hidden;min-width:${o.tile ?? 220}px}
+.tile{margin:0;background:var(--paper);color:var(--ink);border-radius:8px;overflow:hidden;min-width:${WIDE_KINDS.has(el.kind) ? 560 : o.tile ?? 220}px}
 .stage{padding:28px;display:grid;place-items:center;min-height:${Math.round((o.tile ?? 220) * 0.6)}px}
 figcaption{padding:6px 10px;color:var(--muted);border-top:1px solid var(--line)}
 ${cfg.baseCss ?? ""}

@@ -51,3 +51,10 @@ test("an element with a scope carries its params on that selector", () => {
   const { css } = compileElement({ ...btn, scope: ".btn" });
   assert.match(css, /^\.btn\{--btn-stroke:2px\}/);
 });
+
+test("wide kinds (illustration, section) preview on a 720px stage; small kinds stay centred", () => {
+  const wide = elementPage({ tokens, el: { ...btn, kind: "illustration" }, theme: "light" });
+  assert.match(wide, /<div class="studio-stage" style="width:min\(100%,720px\)">/);
+  const small = elementPage({ tokens, el: btn, theme: "light" });
+  assert.doesNotMatch(small, /studio-stage" style/);
+});

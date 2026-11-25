@@ -168,6 +168,7 @@ export function createMcp(d: McpDeps): McpServer {
 
   tool("studio_adopt", "One-time: wrap an element of the site in studio markers (backup + diff) and create the studio element from it. markup = a unique attribute needle like 'class=\"robot\"'; css = selectors whose rules belong to it. id 'tokens' adopts the token blocks.", {
     id: z.string(), markup: z.string().optional(), css: z.array(z.string()).default([]), kind: z.enum(["logo", "button", "icon", "section", "animation", "illustration"]).optional(),
+    sample: z.string().optional().describe("preview markup for CSS-only adopts (e.g. one <a class=\"btn\">); studio-only, never exported"),
   }, async (a) => {
     const r = await post("/api/adopt", a);
     return text(`adopted ${a.id}${r.created ? " (element created)" : ""}; backup ${r.backup}\n\n${r.diff}`);
