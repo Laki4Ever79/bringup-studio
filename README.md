@@ -52,3 +52,7 @@ studio/       the browser studio
 ## Tests
 
 `npm test` (no paid calls; the generator has a mock provider) and `npm run typecheck`.
+
+## License
+
+Apache-2.0, the same as [Bringup](https://github.com/Laki4Ever79/bringup).
