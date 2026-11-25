@@ -15,7 +15,7 @@ export function boardPage(ctx: Ctx, id: string, o: { variants?: string[]; themes
     const variant = v === "base" ? undefined : v;
     const scopedId = `${id}--${i}`;
     // Compile each variant under its own scoped id so tiles don't share custom properties.
-    const c = compileElement({ ...el, id: scopedId, css: el.css.replaceAll(`--${id}-`, `--${scopedId}-`) }, variant);
+    const c = compileElement({ ...el, id: scopedId, scope: undefined, css: el.css.replaceAll(`--${id}-`, `--${scopedId}-`) }, variant);
     css.push(c.css);
     for (const theme of o.themes) {
       tiles.push(`<figure class="tile" data-theme="${theme}" data-variant="${v}"><div class="stage">${applyStrings(c.markup.replace(`data-studio="${scopedId}"`, `data-studio="${scopedId}" data-studio-el="${id}"`), strings, o.lang)}</div><figcaption>${v}${o.themes.length > 1 ? " · " + theme : ""}</figcaption></figure>`);

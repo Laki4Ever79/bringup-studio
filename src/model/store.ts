@@ -73,6 +73,7 @@ export class Store {
     }
     const el: ElementDef = { id, kind: meta.kind, markup, css, params, motion, variants };
     if (meta.note) el.note = meta.note;
+    if (meta.scope) el.scope = meta.scope;
     return el;
   }
 
@@ -83,7 +84,7 @@ export class Store {
     const isSvg = /^\s*<svg[\s>]/i.test(e.markup);
     rmSync(join(dir, isSvg ? "element.html" : "element.svg"), { force: true });
     writeFileSync(join(dir, isSvg ? "element.svg" : "element.html"), e.markup);
-    writeFileSync(join(dir, "meta.json"), JSON.stringify(e.note ? { kind: e.kind, note: e.note } : { kind: e.kind }, null, 2) + "\n");
+    writeFileSync(join(dir, "meta.json"), JSON.stringify({ kind: e.kind, ...(e.note ? { note: e.note } : {}), ...(e.scope ? { scope: e.scope } : {}) }, null, 2) + "\n");
     writeFileSync(join(dir, "style.css"), e.css);
     writeFileSync(join(dir, "params.json"), JSON.stringify(e.params, null, 2) + "\n");
     writeFileSync(join(dir, "motion.json"), JSON.stringify(e.motion, null, 2) + "\n");

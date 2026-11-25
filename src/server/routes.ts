@@ -2,3 +2,4 @@
 import "../render/routes.ts";
 import "../trace/routes.ts";
 import "../gen/routes.ts";
+import "../export/routes.ts";

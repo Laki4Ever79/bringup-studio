@@ -41,7 +41,7 @@ export type MotionTrack = z.infer<typeof MotionTrackSchema>;
 export const MotionSchema = z.array(MotionTrackSchema);
 
 export const KINDS = ["logo", "button", "icon", "section", "animation", "illustration"] as const;
-export const MetaSchema = z.object({ kind: z.enum(KINDS), note: z.string().optional() });
+export const MetaSchema = z.object({ kind: z.enum(KINDS), note: z.string().optional(), scope: z.string().optional() });
 
 export const VariantSchema = z.record(z.string(), z.union([z.string(), z.number()]));
 
@@ -54,6 +54,8 @@ export type ElementDef = {
   motion: MotionTrack[];
   variants: Record<string, Record<string, string | number>>;
   note?: string;
+  /** CSS selector that carries the params and "&" motion; default [data-studio="<id>"]. */
+  scope?: string;
 };
 
 export const ElementSchema = z.object({
@@ -65,6 +67,7 @@ export const ElementSchema = z.object({
   motion: MotionSchema,
   variants: z.record(z.string(), VariantSchema),
   note: z.string().optional(),
+  scope: z.string().optional(),
 });
 
 export type Strings = Record<string, Record<string, string>>;

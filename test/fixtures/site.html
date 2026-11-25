@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Bringup Waitlist</title>
+<meta name="description" content="Start with a robot that works. Make it yours. Follow Zero to Robot and join the Bringup testers.">
+<meta property="og:title" content="Bringup: start with a robot that works">
+<meta property="og:description" content="We build robots on camera, failures included, and teach what we learn. Join the testers.">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img,svg{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column like a build sheet; silkscreen-style designators (U1, J1…) label each section. */
+:root{
+  --paper:#F6F7F4; --ink:#15201C; --muted:#5A6862; --line:#D5DCD7;
+  --mask:#0E5A4A; --mask-ink:#EAF3EF; --copper:#B3622A; --panel:#FFFFFF;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F1613; --ink:#E5ECE8; --muted:#9AAAA3; --line:#26332E;
+  --mask:#3FA88C; --mask-ink:#0B1411; --copper:#E08A4C; --panel:#151F1B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F1613; --ink:#E5ECE8; --muted:#9AAAA3; --line:#26332E;
+  --mask:#3FA88C; --mask-ink:#0B1411; --copper:#E08A4C; --panel:#151F1B; color-scheme:dark}
+
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--f-body)}
+.wrap{max-width:720px;margin:0 auto;padding-block:32px 64px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:56px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{font:700 20px/1 var(--f-display);letter-spacing:-.01em}
+.brand span{color:var(--copper)}
+.lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.lang button{font:500 13px/1 var(--f-mono);background:none;color:var(--muted);border:0;padding:8px 12px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.lang button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+
+.ref{font:500 12px/1 var(--f-mono);letter-spacing:.08em;color:var(--copper);text-transform:uppercase}
+h1{font:700 clamp(36px,7vw,60px)/1.02 var(--f-display);letter-spacing:-.025em;margin:12px 0 16px;text-wrap:balance}
+h2{font:700 clamp(24px,4vw,30px)/1.15 var(--f-display);letter-spacing:-.015em;margin:8px 0 12px;text-wrap:balance}
+p{margin:0;max-width:62ch}
+.lead{font-size:19px;color:var(--muted)}
+.hero{display:flex;flex-direction:column;gap:20px}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{font:600 16px/1 var(--f-body);background:var(--mask);color:var(--mask-ink);border:0;border-radius:6px;padding:14px 20px;cursor:pointer;text-decoration:none}
+.note{font:400 13px/1.4 var(--f-mono);color:var(--muted)}
+
+/* the robot drawn as a top view: plate, two wheels, caster, board */
+.robot{width:100%;max-width:100%;height:auto;display:block}
+.robot .plate{fill:none;stroke:var(--ink);stroke-width:2}
+.robot .wheel{fill:var(--ink)}
+.robot .board{fill:var(--mask)}
+.robot .pad{fill:var(--copper)}
+.robot .dim{stroke:var(--muted);stroke-width:1}
+.robot text{font:500 11px var(--f-mono);fill:var(--muted)}
+
+.steps{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.steps li{display:grid;grid-template-columns:56px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.steps .n{font:500 13px/1.6 var(--f-mono);color:var(--copper);font-variant-numeric:tabular-nums}
+.steps b{font-weight:600}
+.steps span{color:var(--muted)}
+
+.gets{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.gets div{display:flex;flex-direction:column;gap:6px}
+.gets .ref{color:var(--mask)}
+
+form{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:16px}
+label{display:flex;flex-direction:column;gap:6px;font-weight:500;font-size:15px}
+input,select,textarea{font:16px/1.4 var(--f-body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:11px 12px;min-width:0}
+textarea{resize:vertical;min-height:72px}
+.check{flex-direction:row;align-items:flex-start;gap:10px;font-weight:400;font-size:14px;color:var(--muted)}
+.check input{margin-top:3px;flex:none}
+.status{font:400 14px/1.4 var(--f-mono);color:var(--mask);min-height:1.4em}
+.formbox{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:16px}
+#form-frame{width:100%;min-height:520px;border:0}
+.cmd{display:flex;align-items:stretch;gap:0;margin-top:16px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.cmd code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;font:500 14px/1.4 var(--f-mono);padding:14px 16px;color:var(--ink)}
+.cmd code::before{content:"$ ";color:var(--copper)}
+.cmd button{font:500 13px/1 var(--f-mono);background:var(--ink);color:var(--paper);border:0;padding:0 16px;cursor:pointer;flex:none}
+.cmd button:focus-visible{outline:2px solid var(--copper);outline-offset:-4px}
+.try-note{margin-top:12px}
+.try-note a{color:var(--mask)}
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion: no-preference){.btn{transition:filter .15s}.btn:hover{filter:brightness(1.1)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">bring<span>up</span></div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" id="lang-en" aria-pressed="true" data-lang="en">EN</button>
+      <button type="button" id="lang-sr" aria-pressed="false" data-lang="sr">SR</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="ref" data-i18n="heroRef">U1 · Robotics, democratized</div>
+    <h1 data-i18n="heroTitle">Start with a robot that works. Make it yours.</h1>
+    <p class="lead" data-i18n="heroLead">We're a small team from Novi Sad building robots on camera, failures included, and teaching what we learn. Bringup is the tool we use to design them: boards, printed parts, firmware and the parts list, kept in agreement.</p>
+    <div class="cta-row">
+      <a class="btn" href="#join" data-i18n="heroCta">Join the testers</a>
+      <span class="note" data-i18n="heroNote">Early testing. Free while we learn.</span>
+    </div>
+    <svg class="robot" viewBox="0 0 640 220" role="img" aria-label="Top view of the first rover: base plate, two drive wheels, a caster and one control board">
+      <rect class="plate" x="170" y="30" width="300" height="160" rx="14"/>
+      <rect class="wheel" x="150" y="62" width="22" height="96" rx="5"/>
+      <rect class="wheel" x="468" y="62" width="22" height="96" rx="5"/>
+      <circle class="plate" cx="430" cy="110" r="14"/>
+      <rect class="board" x="230" y="70" width="140" height="80" rx="4"/>
+      <rect class="pad" x="244" y="82" width="10" height="10"/><rect class="pad" x="244" y="128" width="10" height="10"/>
+      <rect class="pad" x="346" y="82" width="10" height="10"/><rect class="pad" x="346" y="128" width="10" height="10"/>
+      <line class="dim" x1="170" y1="208" x2="470" y2="208"/><line class="dim" x1="170" y1="202" x2="170" y2="214"/><line class="dim" x1="470" y1="202" x2="470" y2="214"/>
+      <text x="320" y="204" text-anchor="middle" data-i18n="svgPlate">plate · printed</text>
+      <text x="300" y="114" text-anchor="middle" style="fill:var(--mask-ink)">U1 · MCU</text>
+      <text x="96" y="114" data-i18n="svgMotor">motor</text>
+      <text x="500" y="114">caster</text>
+    </svg>
+  </section>
+
+  <section>
+    <div class="ref" data-i18n="seriesRef">J1 · The series</div>
+    <h2 data-i18n="seriesTitle">Zero to Robot</h2>
+    <p data-i18n="seriesLead">We document our first robot from a sentence to its first drive. Each episode teaches one thing you'd need to build your own.</p>
+    <ol class="steps">
+      <li><span class="n">EP 1</span><div><b data-i18n="s1">We describe a robot to an AI</b> <span data-i18n="s1d">and watch what it designs.</span></div></li>
+      <li><span class="n">EP 2</span><div><b data-i18n="s2">What it chose, and why</b> <span data-i18n="s2d">every part explained.</span></div></li>
+      <li><span class="n">EP 3</span><div><b data-i18n="s3">What a robot really costs</b> <span data-i18n="s3d">the order, line by line.</span></div></li>
+      <li><span class="n">EP 4</span><div><b data-i18n="s4">Soldering and assembly</b> <span data-i18n="s4d">learn it with us.</span></div></li>
+      <li><span class="n">EP 5</span><div><b data-i18n="s5">First power-on</b> <span data-i18n="s5d">smoke or no smoke.</span></div></li>
+      <li><span class="n">EP 6</span><div><b data-i18n="s6">First drive</b> <span data-i18n="s6d">and what broke on the way.</span></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="ref" data-i18n="getsRef">J2 · What testers get</div>
+    <h2 data-i18n="getsTitle">Build along with us</h2>
+    <div class="gets">
+      <div><span class="ref">01</span><b data-i18n="g1">Early access to Bringup</b><span data-i18n="g1d">Design and change robots before anyone else.</span></div>
+      <div><span class="ref">02</span><b data-i18n="g2">Starter robots</b><span data-i18n="g2d">Start from our robots and change them to fit your idea.</span></div>
+      <div><span class="ref">03</span><b data-i18n="g3">First in line for kits</b><span data-i18n="g3d">Build the robot from the videos yourself.</span></div>
+    </div>
+  </section>
+
+  <section id="try">
+    <div class="ref" data-i18n="tryRef">J3 · Try it now</div>
+    <h2 data-i18n="tryTitle">Already use Claude Code? Add Bringup in one line.</h2>
+    <p data-i18n="tryLead">Bringup is an MCP server. Add it, then ask Claude to start a design from one of our starter robots.</p>
+    <div class="cmd"><code id="mcp-cmd">claude mcp add bringup -- npx -y bringup-mcp</code><button type="button" id="copy-cmd" data-i18n="tryCopy">Copy</button></div>
+    <p class="note try-note"><span data-i18n="tryNote">Needs Node.js 22 or newer. Early and rough, so expect sharp edges.</span> <a href="https://www.npmjs.com/package/bringup-mcp" rel="noopener">npm</a> · <a href="https://github.com/Laki4Ever79/bringup" rel="noopener">GitHub</a></p>
+  </section>
+
+  <section id="join">
+    <div class="ref" data-i18n="joinRef">J4 · Join</div>
+    <h2 data-i18n="joinTitle">Become a tester</h2>
+    <div class="formbox">
+      <p data-i18n="joinLead">Leave your email and tell us what you'd like to build. We'll write when testing opens and when new episodes are out.</p>
+      <iframe id="form-frame" title="Tester sign-up form" loading="lazy" hidden></iframe>
+      <p class="cta-row"><a class="btn" id="form-link" href="#" target="_blank" rel="noopener" data-i18n="fSubmit">Join the testers</a></p>
+    </div>
+  </section>
+
+  <footer data-i18n="footer">Bringup · Novi Sad, Serbia · Follow the build on YouTube and Instagram.</footer>
+</div>
+
+<script>
+(function(){
+  // ONE place to configure: the public link of the sign-up form (Tally or Google Forms).
+  var FORM_URL = "";          // e.g. https://tally.so/r/XXXXXX  or  https://forms.gle/XXXX
+  var FORM_EMBED_URL = "";    // optional: Tally "embed" link, e.g. https://tally.so/embed/XXXXXX?transparentBackground=1
+
+  var sr = {
+    heroRef:"U1 · Robotika za sve",
+    heroTitle:"Kreni od robota koji radi. Napravi ga svojim.",
+    heroLead:"Mi smo mali tim iz Novog Sada koji pravi robote pred kamerom, sa sve greškama, i uči druge onome što naučimo. Bringup je alat kojim ih projektujemo: ploče, štampane delove, firmver i spisak delova, usklađene međusobno.",
+    heroCta:"Postani tester", heroNote:"Rano testiranje. Besplatno dok učimo.",
+    svgPlate:"ploča · štampana", svgMotor:"motor",
+    seriesRef:"J1 · Serijal", seriesTitle:"Od nule do robota",
+    seriesLead:"Snimamo našeg prvog robota od jedne rečenice do prve vožnje. Svaka epizoda uči jednu stvar koja ti treba da napraviš svog.",
+    s1:"Opisujemo robota veštačkoj inteligenciji", s1d:"i gledamo šta projektuje.",
+    s2:"Šta je izabrala i zašto", s2d:"svaki deo objašnjen.",
+    s3:"Koliko robot zaista košta", s3d:"porudžbina, stavku po stavku.",
+    s4:"Lemljenje i sklapanje", s4d:"nauči uz nas.",
+    s5:"Prvo uključivanje", s5d:"dima ili bez dima.",
+    s6:"Prva vožnja", s6d:"i šta se usput pokvarilo.",
+    getsRef:"J2 · Šta testeri dobijaju", getsTitle:"Pravi uz nas",
+    g1:"Rani pristup Bringupu", g1d:"Projektuj i menjaj robote pre svih.",
+    g2:"Početni roboti", g2d:"Kreni od naših robota i prilagodi ih svojoj ideji.",
+    g3:"Prvi na redu za kitove", g3d:"Napravi robota iz videa sam.",
+        tryRef:"J3 · Probaj odmah", tryTitle:"Već koristiš Claude Code? Dodaj Bringup jednom linijom.",
+    tryLead:"Bringup je MCP server. Dodaj ga, pa zamoli Claude da započne dizajn od nekog od naših početnih robota.",
+    tryCopy:"Kopiraj", tryNote:"Potreban je Node.js 22 ili noviji. Rana verzija, očekuj grube ivice.",
+    joinRef:"J4 · Prijava", joinTitle:"Postani tester",
+    fEmail:"Imejl", fWho:"Ja sam",
+    o1:"student ili univerzitetski tim", o2:"u Eurobot ili takmičarskom timu", o3:"hobista ili majstor", o4:"inženjer", o5:"samo radoznao/la",
+    fIdea:"Kog robota bi napravio/la? (nije obavezno)",
+    fConsent:"Šaljite mi imejlove o testiranju i serijalu. Mogu da se odjavim kad god hoću, a moji podaci se nikome ne daju.",
+    fSubmit:"Postani tester",
+    footer:"Bringup · Novi Sad, Srbija · Prati pravljenje na YouTubeu i Instagramu.",
+    joinLead:"Ostavi imejl i napiši šta bi voleo/la da napraviš. Javićemo se kad testiranje počne i kad izađu nove epizode."
+  };
+  var en = {};
+  document.querySelectorAll("[data-i18n]").forEach(function(el){ en[el.dataset.i18n] = el.textContent; });
+  function setLang(l){
+    var dict = l === "sr" ? sr : en;
+    document.documentElement.lang = l === "sr" ? "sr-Latn" : "en";
+    document.querySelectorAll("[data-i18n]").forEach(function(el){ var v = dict[el.dataset.i18n]; if (v != null) el.textContent = v; });
+    document.querySelectorAll(".lang button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.lang === l)); });
+    try { localStorage.setItem("bringup-lang", l); } catch(e){}
+  }
+  document.querySelectorAll(".lang button").forEach(function(b){ b.addEventListener("click", function(){ setLang(b.dataset.lang); }); });
+  var start = "en";
+  try { start = localStorage.getItem("bringup-lang") || ((navigator.language||"").slice(0,2) === "sr" ? "sr" : "en"); } catch(e){}
+  if (start === "sr") setLang("sr");
+
+  var link = document.getElementById("form-link"), frame = document.getElementById("form-frame");
+  if (FORM_EMBED_URL) { frame.src = FORM_EMBED_URL; frame.hidden = false; link.parentNode.hidden = true; }
+  else if (FORM_URL) { link.href = FORM_URL; }
+  else { link.removeAttribute("href"); link.setAttribute("aria-disabled","true"); link.style.opacity = ".5"; }
+  var copyBtn = document.getElementById("copy-cmd");
+  copyBtn.addEventListener("click", function(){
+    var text = document.getElementById("mcp-cmd").textContent;
+    var done = function(){ var old = copyBtn.textContent; copyBtn.textContent = lang === "sr" ? "Kopirano" : "Copied"; setTimeout(function(){ copyBtn.textContent = old; }, 1500); };
+    try { navigator.clipboard.writeText(text).then(done, function(){}); } catch(e){}
+  });
+})();
+</script>
+</body>
+</html>

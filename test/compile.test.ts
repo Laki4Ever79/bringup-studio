@@ -46,3 +46,8 @@ test("elementPage is a standalone document with theme, lang and the element", ()
   assert.match(html, /data-studio="btn"/);
   assert.match(html, /Prijavi se/);
 });
+
+test("an element with a scope carries its params on that selector", () => {
+  const { css } = compileElement({ ...btn, scope: ".btn" });
+  assert.match(css, /^\.btn\{--btn-stroke:2px\}/);
+});

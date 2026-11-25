@@ -32,8 +32,9 @@ export function resolveParams(e: ElementDef, variant?: string): Record<string, s
   return out;
 }
 
-function scope(id: string, selector: string): string {
-  const root = `[data-studio="${id}"]`;
+export const scopeOf = (e: Pick<ElementDef, "id" | "scope">) => e.scope ?? `[data-studio="${e.id}"]`;
+
+function scope(root: string, selector: string): string {
   return selector === "&" ? root : selector.startsWith("&") ? root + selector.slice(1) : `${root} ${selector}`;
 }
 
@@ -46,7 +47,8 @@ export function tagMarkup(id: string, markup: string): string {
 export function compileElement(e: ElementDef, variant?: string): { css: string; markup: string } {
   const vals = resolveParams(e, variant);
   const vars = Object.entries(vals).map(([k, v]) => `--${e.id}-${k}:${v}`).join(";");
-  const parts = [`[data-studio="${e.id}"]{${vars}}`, e.css.trim()];
+  const root = scopeOf(e);
+  const parts = [vars ? `${root}{${vars}}` : "", e.css.trim()];
   const bySelector = new Map<string, string[]>();
   e.motion.forEach((t, n) => {
     const name = `${e.id}-${n}`;
@@ -54,7 +56,7 @@ export function compileElement(e: ElementDef, variant?: string): { css: string; 
       .map((k) => `${+(k.offset * 100).toFixed(3)}%{${t.property}:${k.value}${k.ease ? `;animation-timing-function:${k.ease}` : ""}}`)
       .join("");
     parts.push(`@keyframes ${name}{${frames}}`);
-    const sel = scope(e.id, t.selector);
+    const sel = scope(root, t.selector);
     const list = bySelector.get(sel) ?? [];
     list.push(`${name} ${t.duration} ${t.delay ?? "0s"} ${t.iterations ?? 1} both`);
     bySelector.set(sel, list);
