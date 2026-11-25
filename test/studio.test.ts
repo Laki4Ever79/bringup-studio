@@ -13,6 +13,7 @@ srv.ctx.store.setTokens(tokens);
 srv.ctx.store.put(btn);
 srv.ctx.store.put({ ...btn, id: "logo", kind: "logo", variants: { a: { stroke: 1 }, b: { stroke: 5 } } });
 const browser = await chromium.launch();
+const JSON_H = { "content-type": "application/json" };
 after(async () => { await browser.close(); await srv.close(); });
 
 test("show switches the board to an element; Pick posts feedback; status shows", async () => {
@@ -21,7 +22,7 @@ test("show switches the board to an element; Pick posts feedback; status shows",
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(srv.url + "/");
   await page.waitForSelector("#conn[data-state=open]");
-  await fetch(srv.url + "/api/show", { method: "POST", body: JSON.stringify({ view: "board", element: "logo", note: "two weights" }) });
+  await fetch(srv.url + "/api/show", { method: "POST", headers: JSON_H, body: JSON.stringify({ view: "board", element: "logo", note: "two weights" }) });
   await page.waitForSelector('.tile[data-variant="b"]');
   assert.match(await page.textContent("#note") ?? "", /two weights/);
   await page.click('.tile[data-variant="b"] .hit');
@@ -30,7 +31,7 @@ test("show switches the board to an element; Pick posts feedback; status shows",
   assert.equal(fb.items.at(-1).kind, "pick");
   assert.equal(fb.items.at(-1).element, "logo");
   assert.equal(fb.items.at(-1).variant, "b");
-  await fetch(srv.url + "/api/status", { method: "POST", body: JSON.stringify({ session: "claude-x", text: "tuning stroke" }) });
+  await fetch(srv.url + "/api/status", { method: "POST", headers: JSON_H, body: JSON.stringify({ session: "claude-x", text: "tuning stroke" }) });
   await page.waitForFunction(() => document.querySelector("#status")?.textContent?.includes("tuning stroke"));
   assert.deepEqual(errors, []);
 });
@@ -51,4 +52,24 @@ test("alt-click drops a pinned comment with tile coordinates", async () => {
   assert.equal(c.x, 30);
   assert.equal(c.y, 20);
   assert.equal(c.text, "thinner here");
+});
+
+test("feedback text is shown as text, never as markup", async () => {
+  const page = await browser.newPage();
+  await page.goto(srv.url + "/");
+  await page.waitForSelector("#conn[data-state=open]");
+  await fetch(srv.url + "/api/feedback", { method: "POST", headers: JSON_H, body: JSON.stringify({ kind: "comment", element: "btn", text: '<img id="pwn" src=x>' }) });
+  await page.waitForFunction(() => document.querySelector("#feed")?.textContent?.includes("<img"));
+  assert.equal(await page.$("#pwn"), null);
+});
+
+test("a show sent before the tab connects is applied on connect, note included", async () => {
+  for (const c of browser.contexts()) for (const pg of c.pages()) await pg.close(); // no studio tab connected
+  for (let i = 0; i < 20 && srv.ctx.broadcast({ type: "ping" }) > 0; i++) await new Promise((r) => setTimeout(r, 50));
+  await fetch(srv.url + "/api/show", { method: "POST", headers: JSON_H, body: JSON.stringify({ view: "board", element: "logo", variants: ["a"], note: "judge the weight" }) });
+  const page = await browser.newPage();
+  await page.goto(srv.url + "/");
+  await page.waitForSelector('.tile[data-variant="a"]');
+  assert.equal(await page.$('.tile[data-variant="b"]'), null);
+  assert.match(await page.textContent("#note") ?? "", /judge the weight/);
 });

@@ -120,6 +120,7 @@ function unifiedDiff(a: string, b: string, label: string): string {
  * a unified diff. Records the wrapped content's hashes as the export baseline.
  */
 export function adopt(sitePath: string, o: { id: string; markupNeedle?: string; cssSelectors: string[] }, statePath: string): { diff: string; backup: string } {
+  if (!/^[a-z][a-z0-9-]*$/.test(o.id)) throw new StudioError("bad_id", `invalid element id "${o.id.slice(0, 40)}"`);
   let html = readFileSync(sitePath, "utf8");
   if (html.includes(C_OPEN(o.id)) || html.includes(H_OPEN(o.id))) throw new StudioError("bad_marker", `"${o.id}" is already adopted`);
   const backup = `${sitePath}.bak-${new Date().toISOString().replace(/[:.]/g, "-")}`;

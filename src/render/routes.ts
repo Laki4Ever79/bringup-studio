@@ -1,5 +1,5 @@
 import { route, type Ctx } from "../server/app.ts";
-import { compileElement, compileTokens, applyStrings, DEFAULT_FONTS, stageOpen, WIDE_KINDS } from "../model/compile.ts";
+import { compileElement, compileTokens, applyStrings, DEFAULT_FONTS, stageOpen, WIDE_KINDS, safeLang } from "../model/compile.ts";
 import { StudioError } from "../model/types.ts";
 import { renderFrames, renderGif, renderPng } from "./render.ts";
 
@@ -7,7 +7,10 @@ import { renderFrames, renderGif, renderPng } from "./render.ts";
 export function boardPage(ctx: Ctx, id: string, o: { variants?: string[]; themes: ("light" | "dark")[]; lang: string; tile?: number }) {
   const el = ctx.store.get(id);
   const cfg = ctx.config();
-  const names = o.variants?.length ? o.variants : ["base", ...Object.keys(el.variants)];
+  const all = ["base", ...Object.keys(el.variants)];
+  for (const v of o.variants ?? []) if (!all.includes(v)) throw new StudioError("not_found", `element "${id}" has no such variant (have: ${all.join(", ")})`);
+  const names = o.variants?.length ? o.variants : all;
+  o = { ...o, lang: safeLang(o.lang) };
   const strings = ctx.store.strings();
   const tiles: string[] = [];
   const css: string[] = [];

@@ -77,7 +77,7 @@ test("POST /api/gen with mock stores refs, logs feedback, and spend reads the le
   process.env.STUDIO_LEDGER = join(d, "spend.jsonl");
   const srv = await startServer({ root: d, port: 0, project: "demo", watch: false });
   try {
-    const r = await (await fetch(srv.url + "/api/gen", { method: "POST", body: JSON.stringify({ prompt: "mark", provider: "mock", count: 2 }) })).json();
+    const r = await (await fetch(srv.url + "/api/gen", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt: "mark", provider: "mock", count: 2 }) })).json();
     assert.equal(r.images.length, 2);
     assert.deepEqual((await (await fetch(srv.url + "/api/refs")).json()).length, 2);
     const fb = await (await fetch(srv.url + "/api/feedback?since=0")).json();
@@ -85,4 +85,12 @@ test("POST /api/gen with mock stores refs, logs feedback, and spend reads the le
     assert.deepEqual(await (await fetch(srv.url + "/api/spend")).json(), { today: 0, all: 0 });
     assert.equal((await (await fetch(srv.url + "/api/gen/estimate?provider=openai&count=4")).json()).usd, 0.168);
   } finally { await srv.close(); delete process.env.STUDIO_LEDGER; }
+});
+
+test("a paid 200 with an unexpected body is still logged", async () => {
+  const d = dir(), ledger = join(d, "spend.jsonl");
+  const fetch = async () => new Response(JSON.stringify({ data: [{ url: "https://x" }] }), { status: 200 });
+  await assert.rejects(generate({ provider: "openai", prompt: "x", count: 1 },
+    { outDir: join(d, "refs"), ledgerPath: ledger, project: "demo", fetch: fetch as any, env: { OPENAI_API_KEY: "k" } }));
+  assert.equal(JSON.parse(readFileSync(ledger, "utf8").trim()).usd, 0.042);
 });

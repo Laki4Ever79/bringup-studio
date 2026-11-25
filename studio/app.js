@@ -215,7 +215,9 @@ function addFeed(f) {
   state.feedback.push(f);
   const li = document.createElement("li");
   const what = f.kind === "comment" ? `“${f.text}”` : f.kind === "generate" ? `generated ${f.meta?.count ?? ""}` : f.kind;
-  li.innerHTML = `<b>${f.element ?? ""}${f.variant ? "/" + f.variant : ""}</b> ${what}`;
+  const b = document.createElement("b");
+  b.textContent = `${f.element ?? ""}${f.variant ? "/" + f.variant : ""}`;
+  li.append(b, " " + what); // text only: feedback is data, never markup
   $("#feed").prepend(li);
   if (f.element === state.element && state.view === "board") {
     drawPins();
@@ -274,8 +276,8 @@ function connect(delay = 500) {
   ws.onopen = () => { $("#conn").dataset.state = "open"; delay = 500; };
   ws.onclose = () => { $("#conn").dataset.state = "closed"; setTimeout(() => connect(Math.min(delay * 2, 8000)), delay); };
   ws.onmessage = async (ev) => {
-    const m = JSON.parse(ev.data);
-    if (m.type === "hello") {
+    let m = JSON.parse(ev.data);
+    if (m.type === "hello" && !m.show) {
       $("#project").textContent = m.project;
       if (m.status) setStatus(m.status);
       setStatus({ holder: m.holder });
@@ -284,7 +286,10 @@ function connect(delay = 500) {
       else for (const id of state.elements) state.bump[id] = (state.bump[id] ?? 0) + 1;
       if (!m.element || !state.elements.includes(m.element)) await refreshElements();
       if (!m.element || m.element === state.element || state.view === "page") render();
-    } else if (m.type === "show") {
+    } else if (m.type === "show" || (m.type === "hello" && m.show)) {
+      if (m.type === "hello") { $("#project").textContent = m.project; setStatus({ holder: m.holder }); }
+      if (m.type === "hello" && m.status) setStatus(m.status);
+      if (m.type === "hello") m = m.show; // a show sent before this tab connected
       if (m.view) state.view = m.view;
       if (m.element) state.element = m.element;
       state.variants = m.variants ?? null;

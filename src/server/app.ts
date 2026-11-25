@@ -46,7 +46,8 @@ export async function body(req: IncomingMessage): Promise<any> {
 
 const STATUS: Record<string, number> = {
   not_found: 404, locked: 423, no_session: 400, bad_json: 400, invalid_file: 400, bad_param: 400, bad_id: 400,
-  hand_edited: 409, no_key: 412, no_site: 412, not_adopted: 409,
+  hand_edited: 409, no_key: 412, no_site: 412, not_adopted: 409, forbidden: 403, unsupported_type: 415,
+  bad_marker: 409, provider: 502, no_tool: 412,
 };
 
 const MIME: Record<string, string> = {
@@ -94,8 +95,10 @@ route("POST", /^\/api\/feedback$/, async (req, _r, _m, ctx) => {
 });
 route("POST", /^\/api\/show$/, async (req, _r, _m, ctx) => {
   const msg = { type: "show", ...(await body(req)) };
-  ctx.state.show = msg;
-  return { clients: ctx.broadcast(msg) };
+  const clients = ctx.broadcast(msg);
+  // Keep it only when no tab got it: the next tab to connect receives it once (see hello).
+  ctx.state.show = clients === 0 ? msg : undefined;
+  return { clients };
 });
 route("POST", /^\/api\/status$/, async (req, _r, _m, ctx) => {
   const b = await body(req);
@@ -173,6 +176,7 @@ export async function startServer(opts: { root: string; port: number; project: s
   const server = createServer(async (req, res) => {
     const u = new URL(req.url ?? "/", "http://x");
     try {
+      guard(req);
       for (const r of routes) {
         if (r.method !== req.method) continue;
         const m = u.pathname.match(r.path);
@@ -200,13 +204,33 @@ export async function startServer(opts: { root: string; port: number; project: s
     }
   });
 
+  /**
+   * Local-only guard. Any web page the user visits can send requests to 127.0.0.1, so:
+   * - Host must be this server (blocks DNS rebinding);
+   * - a present Origin must be this server (blocks cross-site fetch/WebSocket);
+   * - writes must be application/json (a cross-site "simple request" can't set that without a preflight).
+   */
+  function guard(req: IncomingMessage) {
+    const port = (server.address() as { port: number } | null)?.port;
+    const ok = new Set([`127.0.0.1:${port}`, `localhost:${port}`]);
+    if (!ok.has(String(req.headers.host ?? ""))) throw new StudioError("forbidden", `host "${req.headers.host}" is not this studio`);
+    const origin = req.headers.origin;
+    if (origin && !ok.has(origin.replace(/^https?:\/\//, ""))) throw new StudioError("forbidden", `origin "${origin}" may not use the studio`);
+    if (req.method !== "GET" && req.method !== "HEAD" && req.headers.upgrade === undefined
+      && !String(req.headers["content-type"] ?? "").toLowerCase().startsWith("application/json")) {
+      throw new StudioError("unsupported_type", "writes must be sent as application/json");
+    }
+  }
+
   const wss = new WebSocketServer({ noServer: true });
   server.on("upgrade", (req, sock, head) => {
     if (!req.url?.startsWith("/ws")) return sock.destroy();
+    try { guard(req); } catch { return sock.destroy(); }
     wss.handleUpgrade(req, sock, head, (ws) => {
       clients.add(ws);
       ws.on("close", () => clients.delete(ws));
       ws.send(JSON.stringify({ type: "hello", project: ctx.project, holder: ctx.lock.current(), ...ctx.state }));
+      ctx.state.show = undefined; // a pending show is delivered once
     });
   });
 

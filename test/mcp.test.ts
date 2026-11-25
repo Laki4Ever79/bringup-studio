@@ -41,7 +41,7 @@ test("show with no studio tab opens the browser once", async () => {
   const r = await call("studio_show", { view: "board", element: "btn", note: "first look" });
   assert.equal(opened.length, 1);
   assert.match(opened[0], /#board\/btn$/);
-  assert.match(r.content[0].text, /opened/);
+  assert.match(r.content[0].text, /open .*#board\/btn/);
 });
 
 test("params_set writes through the session and errors come back readable", async () => {
@@ -54,9 +54,21 @@ test("params_set writes through the session and errors come back readable", asyn
 });
 
 test("feedback reads only what is new since the last read", async () => {
-  await fetch(srv.url + "/api/feedback", { method: "POST", body: JSON.stringify({ kind: "pick", element: "btn", variant: "thick" }) });
+  await fetch(srv.url + "/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "pick", element: "btn", variant: "thick" }) });
   const first = await call("studio_feedback");
   assert.match(first.content[0].text, /pick btn\/thick/);
   const second = await call("studio_feedback");
   assert.match(second.content[0].text, /no new feedback/);
+});
+
+test("show says plainly when the browser could not be opened, with the URL", async () => {
+  const m2 = createMcp({ base: srv.url, session: "s2", open: async () => { throw new Error("xdg-open not found"); }, cursorDir: root, showWaitMs: 200 });
+  const [x, y] = InMemoryTransport.createLinkedPair();
+  await m2.connect(x);
+  const c2 = new Client({ name: "t2", version: "0" });
+  await c2.connect(y);
+  const r = await c2.callTool({ name: "studio_show", arguments: { view: "board", element: "btn" } }) as any;
+  assert.match(r.content[0].text, /could not open a browser/i);
+  assert.match(r.content[0].text, new RegExp(srv.url.replace(/[.]/g, "\\.")));
+  await c2.close();
 });

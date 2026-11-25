@@ -90,7 +90,7 @@ test("routes: adopt creates the element, export writes it, a hand edit gets 409,
   mkdirSync(join(d, "projects/demo"), { recursive: true });
   writeFileSync(join(d, "projects/demo/project.json"), JSON.stringify({ site: p }));
   const srv = await startServer({ root: d, port: 0, project: "demo", watch: false });
-  const post = (path: string, b: object) => fetch(srv.url + path, { method: "POST", headers: { "x-studio-session": "t" }, body: JSON.stringify(b) });
+  const post = (path: string, b: object) => fetch(srv.url + path, { method: "POST", headers: { "x-studio-session": "t", "content-type": "application/json" }, body: JSON.stringify(b) });
   try {
     const a = await (await post("/api/adopt", { id: "btn", css: [".btn"], kind: "button" })).json();
     assert.equal(a.created, true);
@@ -98,7 +98,7 @@ test("routes: adopt creates the element, export writes it, a hand edit gets 409,
     assert.equal(el.scope, ".btn");
     el.params = [{ name: "radius", type: "length", value: 9, unit: "px" }];
     el.css = el.css.replace("border-radius:6px", "border-radius:var(--btn-radius)");
-    await fetch(srv.url + "/api/elements/btn", { method: "PUT", headers: { "x-studio-session": "t" }, body: JSON.stringify(el) });
+    await fetch(srv.url + "/api/elements/btn", { method: "PUT", headers: { "x-studio-session": "t", "content-type": "application/json" }, body: JSON.stringify(el) });
     const preview = await (await fetch(srv.url + "/preview/page")).text();
     assert.match(preview, /\.btn\{--btn-radius:9px\}/);
     assert.doesNotMatch(readFileSync(p, "utf8"), /--btn-radius/);
@@ -108,5 +108,8 @@ test("routes: adopt creates the element, export writes it, a hand edit gets 409,
     const r = await post("/api/export", { id: "btn" });
     assert.equal(r.status, 409);
     assert.equal((await r.json()).error, "hand_edited");
+    const before = readFileSync(p, "utf8");
+    for (const id of ["Robot", "", "x -->"]) assert.equal((await post("/api/adopt", { id, markup: 'class="robot"', css: [".robot"] })).status, 400);
+    assert.equal(readFileSync(p, "utf8"), before);
   } finally { await srv.close(); }
 });

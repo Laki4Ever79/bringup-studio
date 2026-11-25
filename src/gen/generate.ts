@@ -45,7 +45,7 @@ export function loadEnv(studioRoot: string): Record<string, string> {
   return out;
 }
 
-async function openai(prompt: string, n: number, model: string, size: string, quality: string, d: Deps, key: string): Promise<Buffer[]> {
+async function openai(prompt: string, n: number, model: string, size: string, quality: string, d: Deps, key: string): Promise<() => Buffer[]> {
   const f = d.fetch ?? fetch;
   let res: Response;
   if (d.refs?.length) {
@@ -61,10 +61,10 @@ async function openai(prompt: string, n: number, model: string, size: string, qu
   }
   const j: any = await res.json().catch(() => ({}));
   if (!res.ok) throw new StudioError("provider", `OpenAI: ${j?.error?.message ?? res.statusText}`);
-  return (j.data ?? []).map((x: any) => Buffer.from(x.b64_json, "base64"));
+  return () => decode((j.data ?? []).map((x: any) => x?.b64_json), "OpenAI");
 }
 
-async function gemini(prompt: string, n: number, model: string, d: Deps, key: string): Promise<Buffer[]> {
+async function gemini(prompt: string, n: number, model: string, d: Deps, key: string): Promise<() => Buffer[]> {
   const f = d.fetch ?? fetch;
   const res = await f(`https://generativelanguage.googleapis.com/v1beta/models/${model}:predict`, {
     method: "POST", headers: { "x-goog-api-key": key, "content-type": "application/json" },
@@ -72,7 +72,13 @@ async function gemini(prompt: string, n: number, model: string, d: Deps, key: st
   });
   const j: any = await res.json().catch(() => ({}));
   if (!res.ok) throw new StudioError("provider", `Gemini: ${j?.error?.message ?? res.statusText}`);
-  return (j.predictions ?? []).map((p: any) => Buffer.from(p.bytesBase64Encoded, "base64"));
+  return () => decode((j.predictions ?? []).map((p: any) => p?.bytesBase64Encoded), "Gemini");
+}
+
+function decode(b64s: unknown[], who: string): Buffer[] {
+  const out = b64s.filter((b): b is string => typeof b === "string" && b.length > 0).map((b) => Buffer.from(b, "base64"));
+  if (!out.length) throw new StudioError("provider", `${who} answered OK but sent no images (the call is still logged as spent)`);
+  return out;
 }
 
 function mock(n: number, prompt: string): Buffer[] {
@@ -95,22 +101,23 @@ export async function generate(r: GenReq & { prompt: string }, d: Deps): Promise
   const { model, size, quality } = resolved(r);
   const usd = estimate({ ...r, count });
   const env = d.env ?? process.env;
-  let bufs: Buffer[];
-  if (r.provider === "mock") bufs = mock(count, r.prompt);
+  let take: () => Buffer[];
+  if (r.provider === "mock") { const m = mock(count, r.prompt); take = () => m; }
   else if (r.provider === "openai") {
     const key = env.OPENAI_API_KEY;
     if (!key) throw new StudioError("no_key", "Add OPENAI_API_KEY to bringup-studio/.env");
-    bufs = await openai(r.prompt, count, model, size, quality, d, key);
+    take = await openai(r.prompt, count, model, size, quality, d, key);
   } else if (r.provider === "gemini") {
     const key = env.GEMINI_API_KEY;
     if (!key) throw new StudioError("no_key", "Add GEMINI_API_KEY to bringup-studio/.env");
-    bufs = await gemini(r.prompt, count, model, d, key);
+    take = await gemini(r.prompt, count, model, d, key);
   } else throw new StudioError("bad_param", `unknown provider "${r.provider}"`);
 
   const ledger = d.ledgerPath ?? DEFAULT_LEDGER;
   mkdirSync(dirname(ledger), { recursive: true });
   appendFileSync(ledger, JSON.stringify({ at: new Date().toISOString(), usd, model: `${r.provider}:${model}`, source: "studio", where: `studio/${d.project}: ${r.prompt.slice(0, 80)}` }) + "\n");
 
+  const bufs = take(); // decode after logging: a paid call is recorded even if its body is unusable
   mkdirSync(d.outDir, { recursive: true });
   const stem = `gen-${Date.now()}`;
   const images = bufs.map((b, i) => {

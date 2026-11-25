@@ -65,7 +65,10 @@ export function compileElement(e: ElementDef, variant?: string): { css: string; 
   return { css: parts.filter(Boolean).join("\n"), markup: tagMarkup(e.id, e.markup.trim()) };
 }
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+/** A language code safe to place in markup ("en", "sr", "sr-Latn"); anything else falls back to "en". */
+export const safeLang = (l: string | null | undefined) => (l && /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(l) ? l : "en");
+
+export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 export function applyStrings(markup: string, strings: Strings | undefined, lang: string): string {
   const table = strings?.[lang];
@@ -88,7 +91,7 @@ export function elementPage(p: {
   tokens: Tokens; el: ElementDef; variant?: string; theme: "light" | "dark"; lang?: string;
   strings?: Strings; fontsHref?: string; baseCss?: string; pad?: number;
 }): string {
-  const lang = p.lang ?? "en";
+  const lang = safeLang(p.lang);
   const { css, markup } = compileElement(p.el, p.variant);
   return `<!doctype html><html lang="${lang}" data-theme="${p.theme}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">

@@ -114,14 +114,16 @@ export function createMcp(d: McpDeps): McpServer {
     let r = await post("/api/show", a);
     if (r.clients > 0) return text(`shown to ${r.clients} studio tab(s)`);
     const url = `${d.base}/#${a.view}${a.element && a.view !== "page" ? "/" + a.element : ""}`;
-    await d.open(url);
+    try { await d.open(url); } catch (e) {
+      return text(`could not open a browser (${(e as Error).message}). Ask the user to open ${url} — the studio will show this view when it connects.`);
+    }
     const until = Date.now() + (d.showWaitMs ?? 5000);
     while (Date.now() < until) {
       await new Promise((res) => setTimeout(res, 250));
       r = await post("/api/show", a);
       if (r.clients > 0) break;
     }
-    return text(r.clients > 0 ? `opened ${url} and shown` : `opened ${url} (tab not connected yet; it will load this view)`);
+    return text(r.clients > 0 ? `opened ${url} and shown` : `asked the browser to open ${url}, but no studio tab connected within the wait; it will show this view (note included) once it does — tell the user the URL if they don't see it`);
   });
 
   const cursorFile = join(d.cursorDir, `feedback-cursor-${d.session.replace(/[^a-z0-9_-]/gi, "_")}.json`);

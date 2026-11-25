@@ -30,3 +30,9 @@ test("render API returns a PNG of the element clipped to it", async () => {
 test("render API 404s for a missing element", async () => {
   assert.equal((await fetch(srv.url + "/api/render?target=element&id=ghost")).status, 404);
 });
+
+test("board preview never reflects query values as markup", async () => {
+  const evil = encodeURIComponent('"><script>alert(1)</script>');
+  const html = await (await fetch(srv.url + `/preview/board/btn?lang=${evil}&variants=${evil}`)).text();
+  assert.doesNotMatch(html, /<script>alert/);
+});

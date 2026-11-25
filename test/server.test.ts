@@ -78,3 +78,23 @@ test("element preview serves a standalone page", async () => {
   assert.match(html, /--btn-stroke:3px/);
   assert.equal((await call("/preview/element/ghost")).status, 404);
 });
+
+test("cross-site requests are refused: foreign Host, foreign Origin, non-JSON writes", async () => {
+  const port = new URL(srv.url).port;
+  const { request } = await import("node:http");
+  const raw = (headers: Record<string, string>, method = "POST", path = "/api/feedback") => new Promise<number>((res) => {
+    const r = request({ host: "127.0.0.1", port, method, path, headers }, (x) => { x.resume(); res(x.statusCode!); });
+    r.end(method === "GET" ? undefined : JSON.stringify({ kind: "pick" }));
+  });
+  assert.equal(await raw({ host: "evil.example:" + port }, "GET", "/api/elements"), 403);
+  assert.equal(await raw({ "content-type": "application/json", origin: "https://evil.example" }), 403);
+  assert.equal(await raw({ "content-type": "text/plain" }), 415);
+  assert.equal(await raw({ "content-type": "application/json", origin: srv.url }), 200);
+  assert.equal(await raw({ host: "localhost:" + port }, "GET", "/api/elements"), 200);
+});
+
+test("query values are never reflected as markup", async () => {
+  const evil = encodeURIComponent('"><script>alert(1)</script>');
+  const el = await (await call(`/preview/element/btn?lang=${evil}`)).text();
+  assert.doesNotMatch(el, /<script>alert/);
+});

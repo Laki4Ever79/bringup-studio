@@ -24,6 +24,8 @@ function compiled(ctx: Ctx, id: string, variant?: string): { markup?: string; cs
 route("POST", /^\/api\/adopt$/, async (req, _r, _m, ctx) => {
   const b = await body(req);
   const id = String(b.id ?? "");
+  // validate before touching the site: a bad id must not leave half-written markers in the user's page
+  if (!/^[a-z][a-z0-9-]*$/.test(id)) throw new StudioError("bad_id", `invalid element id "${id.slice(0, 40)}" (lowercase letters, digits, dashes)`);
   const r = adopt(sitePath(ctx), { id, markupNeedle: b.markup, cssSelectors: b.css ?? [] }, statePath(ctx));
   let created = false;
   if (id !== "tokens" && !ctx.store.list().includes(id)) {
